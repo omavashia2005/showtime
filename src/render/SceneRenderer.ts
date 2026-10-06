@@ -32,6 +32,10 @@ export class SceneRenderer {
   private stageBorder = new Graphics();
   private editMode = true;
 
+  /** True only once app.init() has actually resolved — `app` itself is assigned synchronously
+   * before that, so callers (e.g. the resize ResizeObserver) must check this, not `app`. */
+  ready = false;
+
   async init(container: HTMLDivElement): Promise<void> {
     this.app = new Application();
     await this.app.init({
@@ -40,6 +44,7 @@ export class SceneRenderer {
       backgroundAlpha: 0,
       antialias: true,
     });
+    this.ready = true;
     container.appendChild(this.app.canvas);
 
     this.app.stage.addChild(this.letterboxBg);

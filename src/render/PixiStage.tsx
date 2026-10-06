@@ -25,7 +25,7 @@ export function PixiStage({ onReady }: PixiStageProps) {
     });
 
     const ro = new ResizeObserver(() => {
-      if (!renderer.app) return;
+      if (!renderer.ready) return;
       renderer.resize(container.clientWidth, container.clientHeight);
     });
     ro.observe(container);
@@ -33,7 +33,11 @@ export function PixiStage({ onReady }: PixiStageProps) {
     return () => {
       disposed = true;
       ro.disconnect();
-      if (renderer.app) renderer.destroy();
+      // Don't destroy here: `renderer.app` is assigned synchronously at the start of
+      // SceneRenderer.init(), before `app.init()` (which wires up Pixi's internal plugins)
+      // has resolved. Destroying mid-init crashes inside Pixi (e.g. ResizePlugin's
+      // _cancelResize isn't set up yet). The `disposed` check in the .then() above already
+      // destroys safely once init has actually finished.
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
