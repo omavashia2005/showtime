@@ -67,7 +67,7 @@ export function SelectField<T extends string>({
 }
 
 export function SectionTitle({ children }: { children: ReactNode }) {
-  return <div style={{ ...chromeLabelStyle, marginTop: 12, marginBottom: 4, textTransform: "uppercase" }}>{children}</div>;
+  return <div style={{ ...chromeLabelStyle, marginTop: 18, marginBottom: 8, textTransform: "uppercase" }}>{children}</div>;
 }
 
 export function MetricRow({ label, value, unit }: { label: string; value: string; unit?: string }) {

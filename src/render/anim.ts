@@ -30,6 +30,14 @@ export function approachRgb(current: RGB, target: RGB, dtMs: number, durationMs:
   };
 }
 
+/** Overshoot "back out" easing for one-shot pop-in animations (node appear, selection ring). */
+export function easeBackOut(t: number, overshoot = 1.70158): number {
+  const clamped = Math.min(1, Math.max(0, t));
+  const c = overshoot;
+  const x = clamped - 1;
+  return x * x * ((c + 1) * x + c) + 1;
+}
+
 /** Sine pulse oscillating between `min` and `max` with the given period, per section 9.1. */
 export function sinePulse(nowMs: number, periodMs: number, min: number, max: number): number {
   const phase = (nowMs % periodMs) / periodMs;

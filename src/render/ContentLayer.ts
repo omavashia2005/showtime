@@ -124,7 +124,7 @@ export class ContentLayer {
         this.nodeEntries.set(n.id, entry);
         this.nodesLayer.addChild(view.container);
       }
-      entry.view.container.position.set(n.pos.x, n.pos.y);
+      entry.view.container.position.set(n.pos.x + n.size.x / 2, n.pos.y + n.size.y / 2);
     }
     for (const [id, entry] of this.nodeEntries) {
       if (!seen.has(id)) {

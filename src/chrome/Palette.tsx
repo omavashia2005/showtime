@@ -65,18 +65,18 @@ export function Palette({ visible }: PaletteProps) {
         left: 16,
         top: "50%",
         transform: visible ? "translateY(-50%)" : "translateY(-50%) translateX(-8px)",
-        width: 56,
-        padding: 8,
+        width: 62,
+        padding: 10,
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        gap: 4,
+        gap: 8,
         zIndex: 10,
       }}
     >
       {tools.map((t, i) =>
         t === "divider" ? (
-          <div key={`d${i}`} style={{ width: 24, height: 1, background: "#1F3B38", margin: "4px 0" }} />
+          <div key={`d${i}`} style={{ width: 24, height: 1, background: "#1F3B38", margin: "6px 0" }} />
         ) : (
           <Tooltip key={t.id} label={t.label} hotkey={t.hotkey}>
             <IconButton icon={t.icon} active={tool === t.id} onClick={() => setTool(t.id)} title={t.label} />

@@ -12,7 +12,7 @@ import { Tooltip } from "./Tooltip";
 const SPEEDS: SceneDocument["speed"][] = [0.25, 0.5, 1, 2, 4];
 
 function Divider() {
-  return <div style={{ width: 1, height: 24, background: color.border, flexShrink: 0 }} />;
+  return <div style={{ width: 1, height: 28, background: color.border, flexShrink: 0, margin: "0 2px" }} />;
 }
 
 interface ControlBarProps {
@@ -38,11 +38,11 @@ export function ControlBar({ visible }: ControlBarProps) {
         bottom: 16,
         left: "50%",
         transform: visible ? "translateX(-50%)" : "translateX(-50%) translateY(8px)",
-        height: 52,
-        padding: 10,
+        height: 64,
+        padding: "12px 18px",
         display: "flex",
         alignItems: "center",
-        gap: 8,
+        gap: 14,
         zIndex: 10,
       }}
     >
@@ -87,7 +87,7 @@ function SpeedControl({
   onChange: (s: SceneDocument["speed"]) => void;
 }) {
   return (
-    <div style={{ display: "flex", gap: 2, background: "transparent" }}>
+    <div style={{ display: "flex", gap: 3, background: "transparent" }}>
       {SPEEDS.map((s) => (
         <button
           key={s}
@@ -96,8 +96,9 @@ function SpeedControl({
             ...chromeValueStyle,
             border: "none",
             borderRadius: 6,
-            padding: "4px 8px",
+            padding: "6px 10px",
             cursor: "pointer",
+            transition: "background 140ms cubic-bezier(0, 0, 0.2, 1), color 140ms cubic-bezier(0, 0, 0.2, 1)",
             background: speed === s ? color.bgRaised : "transparent",
             color: speed === s ? color.primary : color.textDim,
           }}
@@ -123,10 +124,10 @@ function GlobalRpsControl() {
       : 0;
 
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
       <input
         className="chrome-input"
-        style={{ ...inputStyle, width: 64 }}
+        style={{ ...inputStyle, width: 68 }}
         type="number"
         min={0}
         step={1}

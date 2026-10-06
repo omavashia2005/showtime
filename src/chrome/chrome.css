@@ -1,7 +1,7 @@
 .chrome-panel {
   border-radius: 12px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
-  transition: opacity 140ms cubic-bezier(0, 0, 0.2, 1), transform 140ms cubic-bezier(0, 0, 0.2, 1);
+  transition: opacity 180ms cubic-bezier(0.34, 1.56, 0.64, 1), transform 180ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .chrome-hidden-left {
@@ -21,8 +21,8 @@
 }
 
 .icon-btn {
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   border-radius: 8px;
   display: flex;
   align-items: center;
@@ -30,25 +30,33 @@
   background: transparent;
   border: none;
   cursor: pointer;
-  transition: background 140ms cubic-bezier(0, 0, 0.2, 1);
+  transition: background 140ms cubic-bezier(0, 0, 0.2, 1), transform 100ms cubic-bezier(0.34, 1.56, 0.64, 1);
   padding: 0;
+}
+.icon-btn:active {
+  transform: scale(0.9);
 }
 
 .chrome-field-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 32px;
+  gap: 12px;
+  height: 36px;
+  margin-bottom: 4px;
 }
 
 .chrome-input {
   border-radius: 6px;
   border-width: 1px;
   border-style: solid;
-  height: 28px;
-  padding: 0 8px;
+  height: 30px;
+  padding: 0 10px;
   outline: none;
-  transition: border-color 140ms cubic-bezier(0, 0, 0.2, 1);
+  transition: border-color 140ms cubic-bezier(0, 0, 0.2, 1), box-shadow 140ms cubic-bezier(0, 0, 0.2, 1);
+}
+.chrome-input:focus {
+  box-shadow: 0 0 0 2px rgba(92, 200, 255, 0.25);
 }
 
 /* Native number-input spinner arrows eat horizontal space meant for the value text

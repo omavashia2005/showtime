@@ -27,10 +27,10 @@ export function Inspector({ visible }: { visible: boolean }) {
         position: "fixed",
         right: 16,
         top: 16,
-        width: 300,
+        width: 320,
         maxHeight: "calc(100vh - 32px)",
         overflowY: "auto",
-        padding: 14,
+        padding: 18,
         zIndex: 10,
       }}
     >

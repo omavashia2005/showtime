@@ -2,9 +2,12 @@ import { BitmapText, Container, Graphics } from "pixi.js";
 import type { NodeMetricsSnapshot } from "../../sim/protocol";
 import { color, hexToNumber, layout, queueFillColor, type } from "../../tokens";
 import type { FaultState, NodeKind } from "../../types/scene";
-import { approach, approachRgb, hexToRgb, rgbToNumber, sinePulse } from "../anim";
+import { approach, approachRgb, easeBackOut, hexToRgb, rgbToNumber, sinePulse } from "../anim";
 import { makeText, setText } from "../text";
 import { computeRimTarget, typeTagFor } from "./nodeVisual";
+
+const APPEAR_POP_MS = 220;
+const SELECT_POP_MS = 220;
 
 export interface RectNodeUpdate {
   name: string;
@@ -40,6 +43,10 @@ export class RectNodeView {
   private height: number = layout.nodeHeight;
   private lastTagText: string | null = null;
 
+  private createdAtMs = performance.now();
+  private wasSelected = false;
+  private selectedSinceMs = 0;
+
   constructor() {
     this.label = makeText("", type.nodeLabel);
     this.tag = makeText("", type.metaTag);
@@ -52,6 +59,14 @@ export class RectNodeView {
   update(u: RectNodeUpdate, dtMs: number, nowMs: number): void {
     this.width = u.width;
     this.height = u.height;
+
+    if (u.selected && !this.wasSelected) this.selectedSinceMs = nowMs;
+    this.wasSelected = u.selected;
+
+    this.container.pivot.set(this.width / 2, this.height / 2);
+    const appearT = Math.min(1, (nowMs - this.createdAtMs) / APPEAR_POP_MS);
+    this.container.scale.set(easeBackOut(appearT));
+    const fadeIn = Math.min(1, (nowMs - this.createdAtMs) / 120);
 
     setText(this.label, u.name);
     this.label.position.set(14, 14);
@@ -73,7 +88,7 @@ export class RectNodeView {
       }
     }
 
-    this.container.alpha = u.fault.killed ? 0.35 : 1;
+    this.container.alpha = (u.fault.killed ? 0.35 : 1) * fadeIn;
 
     const rim = computeRimTarget(u.fault, u.metrics?.health ?? null, u.hovered, u.selected);
     const targetAlpha = rim.pulsing ? sinePulse(nowMs, 1200, 0.45, 1) : rim.alpha;
@@ -89,7 +104,13 @@ export class RectNodeView {
     this.redrawStroke(rim.width);
     this.redrawQueue();
     this.selectionRingGfx.visible = u.selected;
-    if (u.selected) this.redrawSelectionRing();
+    if (u.selected) {
+      const popT = Math.min(1, (nowMs - this.selectedSinceMs) / SELECT_POP_MS);
+      this.selectionRingGfx.pivot.set(this.width / 2, this.height / 2);
+      this.selectionRingGfx.position.set(this.width / 2, this.height / 2);
+      this.selectionRingGfx.scale.set(easeBackOut(popT));
+      this.redrawSelectionRing();
+    }
 
     this.tag.position.set(this.width - 14 - this.tag.width, 14);
     this.leaderTagBg.position.set(this.width - 14 - this.tag.width - 6, 11);
