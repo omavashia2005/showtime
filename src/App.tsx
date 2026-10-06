@@ -15,7 +15,13 @@ export function App() {
       onReady={(renderer) => {
         rendererRef.current = renderer;
 
-        const content = new ContentLayer(renderer.layers.nodes, renderer.layers.groupFrames, renderer.layers.annotations);
+        const content = new ContentLayer(
+          renderer.layers.nodes,
+          renderer.layers.groupFrames,
+          renderer.layers.annotations,
+          renderer.layers.edges,
+          renderer.layers.keyspaceBars,
+        );
 
         if (import.meta.env.DEV) {
           useSceneStore.getState().replaceDoc(demoScene());

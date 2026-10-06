@@ -1,7 +1,10 @@
 import type { Container } from "pixi.js";
 import type { NodeMetricsSnapshot } from "../sim/protocol";
-import type { GroupFrame, SceneDocument, SceneNode, StickyNote, TextLabel } from "../types/scene";
+import type { GroupFrame, KeyspaceBar, SceneDocument, SceneEdge, SceneNode, StickyNote, TextLabel } from "../types/scene";
 import type { SelectableKind, SelectionRef } from "../store/uiStore";
+import { computeEdgeGeometry, type NodeBox } from "./edgeGeometry";
+import { EdgeView } from "./EdgeView";
+import { KeyspaceBarView } from "./KeyspaceBarView";
 import { CircleNodeView } from "./nodes/CircleNodeView";
 import { GroupFrameView } from "./nodes/GroupFrameView";
 import { RectNodeView } from "./nodes/RectNodeView";
@@ -15,6 +18,8 @@ interface NodeEntry {
   isCircle: boolean;
 }
 
+const ACTIVE_WINDOW_MS = 500;
+
 /** Reconciles SceneDocument nodes/frames/labels/notes into Pixi views and redraws them every
  * frame so state transitions (rim color, queue bar, critical pulse) stay smooth regardless of
  * how often the underlying data changes. */
@@ -23,9 +28,13 @@ export class ContentLayer {
   private frameEntries = new Map<string, GroupFrameView>();
   private labelEntries = new Map<string, TextLabelView>();
   private noteEntries = new Map<string, StickyNoteView>();
+  private edgeEntries = new Map<string, EdgeView>();
+  private keyspaceEntries = new Map<string, KeyspaceBarView>();
 
   private latestDoc: SceneDocument | null = null;
   private leaderIds = new Set<string>();
+  private lastEdgeActiveAt = new Map<string, number>();
+  private hoveredRangeId: string | null = null;
 
   private selection: SelectionRef[] = [];
   private hovered: SelectionRef | null = null;
@@ -36,7 +45,32 @@ export class ContentLayer {
     private nodesLayer: Container,
     private groupFramesLayer: Container,
     private annotationsLayer: Container,
+    private edgesLayer: Container,
+    private keyspaceLayer: Container,
   ) {}
+
+  markEdgeActive(edgeId: string, nowMs: number): void {
+    this.lastEdgeActiveAt.set(edgeId, nowMs);
+  }
+
+  setHoveredKeyRange(rangeId: string | null): void {
+    this.hoveredRangeId = rangeId;
+  }
+
+  spawnKeyRouteDot(barId: string, frac: number, nowMs: number): void {
+    this.keyspaceEntries.get(barId)?.addKeyDot(frac, nowMs);
+  }
+
+  private nodesById = new Map<string, SceneNode>();
+
+  private nodeBox(id: string): NodeBox | undefined {
+    const n = this.nodesById.get(id);
+    return n ? { pos: n.pos, size: n.size } : undefined;
+  }
+
+  private nodeName(id: string): string {
+    return this.nodesById.get(id)?.name ?? "";
+  }
 
   setSelection(selection: SelectionRef[], hovered: SelectionRef | null): void {
     this.selection = selection;
@@ -53,6 +87,7 @@ export class ContentLayer {
 
   setDoc(doc: SceneDocument): void {
     this.latestDoc = doc;
+    this.nodesById = new Map(doc.nodes.map((n) => [n.id, n]));
 
     this.leaderIds = new Set();
     for (const f of doc.frames) {
@@ -63,6 +98,8 @@ export class ContentLayer {
     this.reconcileFrames(doc.frames);
     this.reconcileLabels(doc.labels);
     this.reconcileNotes(doc.notes);
+    this.reconcileEdges(doc.edges);
+    this.reconcileKeyspaceBars(doc.keyspaceBars);
   }
 
   private reconcileNodes(nodes: SceneNode[]): void {
@@ -151,6 +188,47 @@ export class ContentLayer {
     }
   }
 
+  private reconcileEdges(edges: SceneEdge[]): void {
+    const seen = new Set<string>();
+    for (const e of edges) {
+      seen.add(e.id);
+      let view = this.edgeEntries.get(e.id);
+      if (!view) {
+        view = new EdgeView();
+        this.edgeEntries.set(e.id, view);
+        this.edgesLayer.addChild(view.container);
+      }
+    }
+    for (const [id, view] of this.edgeEntries) {
+      if (!seen.has(id)) {
+        view.container.destroy();
+        this.edgeEntries.delete(id);
+        this.lastEdgeActiveAt.delete(id);
+      }
+    }
+  }
+
+  private reconcileKeyspaceBars(bars: KeyspaceBar[]): void {
+    const seen = new Set<string>();
+    for (const bar of bars) {
+      seen.add(bar.id);
+      let view = this.keyspaceEntries.get(bar.id);
+      if (!view) {
+        view = new KeyspaceBarView();
+        this.keyspaceEntries.set(bar.id, view);
+        this.keyspaceLayer.addChild(view.container);
+      }
+      view.container.position.set(bar.pos.x, bar.pos.y);
+      view.update(bar.ranges, (id) => this.nodeName(id), bar.width, this.hoveredRangeId);
+    }
+    for (const [id, view] of this.keyspaceEntries) {
+      if (!seen.has(id)) {
+        view.container.destroy();
+        this.keyspaceEntries.delete(id);
+      }
+    }
+  }
+
   tick(dtMs: number, nowMs: number): void {
     const doc = this.latestDoc;
     if (!doc) return;
@@ -183,6 +261,28 @@ export class ContentLayer {
           nowMs,
         );
       }
+    }
+
+    for (const e of doc.edges) {
+      const view = this.edgeEntries.get(e.id);
+      const sourceBox = this.nodeBox(e.sourceId);
+      const targetBox = this.nodeBox(e.targetId);
+      if (!view || !sourceBox || !targetBox) continue;
+      const geom = computeEdgeGeometry(sourceBox, targetBox);
+      const lastActive = this.lastEdgeActiveAt.get(e.id) ?? -Infinity;
+      view.update(
+        {
+          geom,
+          partitioned: e.partitioned,
+          selected: this.isSelected("edge", e.id),
+          active: nowMs - lastActive < ACTIVE_WINDOW_MS,
+        },
+        dtMs,
+      );
+    }
+
+    for (const bar of doc.keyspaceBars) {
+      this.keyspaceEntries.get(bar.id)?.tick(nowMs);
     }
   }
 }

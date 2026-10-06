@@ -84,6 +84,55 @@ export function distanceToBezier(g: EdgeGeom, p: Pt, segments = 24): number {
   return min;
 }
 
+/** Flattened points plus cumulative arc length at each point. */
+export function flattenWithLengths(g: EdgeGeom, segments = 48): { pts: Pt[]; cum: number[] } {
+  const pts = flattenBezier(g, segments);
+  const cum = [0];
+  for (let i = 1; i < pts.length; i++) {
+    const a = pts[i - 1]!;
+    const b = pts[i]!;
+    cum.push(cum[i - 1]! + Math.hypot(b.x - a.x, b.y - a.y));
+  }
+  return { pts, cum };
+}
+
+function pointAtArcLength(pts: Pt[], cum: number[], target: number): Pt {
+  const clamped = Math.max(0, Math.min(cum[cum.length - 1]!, target));
+  for (let i = 1; i < cum.length; i++) {
+    if (cum[i]! >= clamped) {
+      const a = pts[i - 1]!;
+      const b = pts[i]!;
+      const segLen = cum[i]! - cum[i - 1]!;
+      const t = segLen > 0 ? (clamped - cum[i - 1]!) / segLen : 0;
+      return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t };
+    }
+  }
+  return pts[pts.length - 1]!;
+}
+
+/** Split a bezier's flattened path into two polylines with a `gapLen`-wide gap centered at the
+ * curve's midpoint by arc length, for the partitioned-edge visual (section 9.3). */
+export function splitBezierAtMidGap(
+  g: EdgeGeom,
+  gapLen: number,
+  segments = 48,
+): { before: Pt[]; after: Pt[]; center: Pt } {
+  const { pts, cum } = flattenWithLengths(g, segments);
+  const total = cum[cum.length - 1]!;
+  const half = total / 2;
+  const startLen = half - gapLen / 2;
+  const endLen = half + gapLen / 2;
+  const startPt = pointAtArcLength(pts, cum, startLen);
+  const endPt = pointAtArcLength(pts, cum, endLen);
+  const center = pointAtArcLength(pts, cum, half);
+
+  const before = pts.filter((_, i) => cum[i]! <= startLen);
+  before.push(startPt);
+  const after = [endPt, ...pts.filter((_, i) => cum[i]! >= endLen)];
+
+  return { before, after, center };
+}
+
 function distanceToSegment(p: Pt, a: Pt, b: Pt): number {
   const abx = b.x - a.x;
   const aby = b.y - a.y;
