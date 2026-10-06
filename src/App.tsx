@@ -9,6 +9,7 @@ import { RenameOverlay } from "./chrome/RenameOverlay";
 import { demoScene } from "./dev/seedDemoScene";
 import { InteractionController } from "./interactions/InteractionController";
 import { installHotkeys } from "./interactions/hotkeys";
+import { exportScene, installAutosave, restoreAutosave, triggerImportPicker } from "./persistence";
 import { BurstLayer } from "./render/BurstLayer";
 import { ChartsOverlayView, type ChartSample } from "./render/ChartsOverlayView";
 import { ContentLayer } from "./render/ContentLayer";
@@ -25,7 +26,8 @@ import { useUiStore } from "./store/uiStore";
 export function App() {
   const recording = useUiStore((s) => s.recording);
 
-  useEffect(() => installHotkeys(), []);
+  useEffect(() => installHotkeys({ onExport: exportScene, onImport: triggerImportPicker }), []);
+  useEffect(() => installAutosave(), []);
 
   return (
     <>
@@ -76,7 +78,8 @@ export function App() {
           };
           particles.onBurst = (x, y, nowMs) => bursts.trigger(x, y, nowMs);
 
-          if (import.meta.env.DEV) {
+          const restored = restoreAutosave();
+          if (!restored && import.meta.env.DEV) {
             useSceneStore.getState().replaceDoc(demoScene());
           }
 
