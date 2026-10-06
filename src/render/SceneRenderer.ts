@@ -18,6 +18,7 @@ export class SceneRenderer {
     edges: new Container(),
     keyspaceBars: new Container(),
     nodes: new Container(),
+    annotations: new Container(),
     particles: new Container(),
     bursts: new Container(),
     overlay: new Container(), // selection rings, marquee, connect-draft line
@@ -49,6 +50,7 @@ export class SceneRenderer {
     this.world.addChild(this.layers.keyspaceBars);
     this.world.addChild(this.layers.edges);
     this.world.addChild(this.layers.nodes);
+    this.world.addChild(this.layers.annotations);
     this.world.addChild(this.layers.particles);
     this.world.addChild(this.layers.bursts);
     this.world.addChild(this.layers.overlay);
