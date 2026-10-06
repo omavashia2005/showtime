@@ -51,6 +51,24 @@ export class InteractionController {
     return this.renderer.viewportToStage(clientX, clientY, rect);
   }
 
+  /** Cursor affordance: what will clicking/dragging here do. Recording mode's auto-hide
+   * (CursorAutoHide) only touches the cursor while idle, so this doesn't fight it. */
+  private setCursor(cursor: string): void {
+    (this.renderer.app.canvas as HTMLCanvasElement).style.cursor = cursor;
+  }
+
+  private updateIdleCursor(tool: string, hit: SelectionRef | null): void {
+    if (tool === "connect" || tool !== "select") {
+      this.setCursor("crosshair");
+      return;
+    }
+    if (!hit) {
+      this.setCursor("default");
+      return;
+    }
+    this.setCursor(hit.kind === "edge" ? "pointer" : "grab");
+  }
+
   private hitEdge(doc: SceneDocument, p: Pt): SelectionRef | null {
     for (const e of doc.edges) {
       const geom = this.content.getEdgeGeom(e.id);
@@ -72,7 +90,10 @@ export class InteractionController {
 
     if (ui.tool === "connect") {
       const hit = hitTestEntities(doc, p);
-      if (hit?.kind === "node") useUiStore.getState().setConnectDraft({ fromNodeId: hit.id });
+      if (hit?.kind === "node") {
+        useUiStore.getState().setConnectDraft({ fromNodeId: hit.id });
+        this.setCursor("crosshair");
+      }
       return;
     }
 
@@ -100,10 +121,12 @@ export class InteractionController {
         useUiStore.getState().setSelection([hit]);
       }
       this.beginDrag(p, doc);
+      if (this.dragState) this.setCursor("grabbing");
     } else {
       if (!e.shiftKey) useUiStore.getState().clearSelection();
       this.marqueeStart = p;
       this.marqueeCurrent = p;
+      this.setCursor("crosshair");
     }
   };
 
@@ -163,16 +186,23 @@ export class InteractionController {
 
     const ui = useUiStore.getState();
     const doc = useSceneStore.getState().doc;
-    if (ui.connectDraft) {
-      this.drawConnectDraft(doc, ui.connectDraft.fromNodeId, p);
-      return;
-    }
 
+    // Hover must stay live even mid-connect-drag: onPointerUp reads `hovered` to know what
+    // node is under the cursor at release (there's no pointer position on the up event).
     const hit = this.hitAny(doc, p);
     const cur = ui.hovered;
     const same = cur && hit && cur.kind === hit.kind && cur.id === hit.id;
     const bothNull = !cur && !hit;
     if (!same && !bothNull) useUiStore.getState().setHovered(hit);
+
+    if (ui.connectDraft) {
+      this.drawConnectDraft(doc, ui.connectDraft.fromNodeId, p);
+      const validTarget = hit?.kind === "node" && hit.id !== ui.connectDraft.fromNodeId;
+      this.setCursor(validTarget ? "crosshair" : "not-allowed");
+      return;
+    }
+
+    this.updateIdleCursor(ui.tool, hit);
 
     if (hit?.kind === "keyspaceBar") {
       const bar = doc.keyspaceBars.find((b) => b.id === hit.id);
