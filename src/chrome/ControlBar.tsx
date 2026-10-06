@@ -135,7 +135,7 @@ function GlobalRpsControl() {
       />
       <input
         className="chrome-input"
-        style={{ ...inputStyle, width: 44 }}
+        style={{ ...inputStyle, width: 60 }}
         type="number"
         value={doc.globalRpsSliderMin}
         onChange={(e) => setMin(Number(e.target.value))}
@@ -151,7 +151,7 @@ function GlobalRpsControl() {
       />
       <input
         className="chrome-input"
-        style={{ ...inputStyle, width: 44 }}
+        style={{ ...inputStyle, width: 60 }}
         type="number"
         value={doc.globalRpsSliderMax}
         onChange={(e) => setMax(Number(e.target.value))}

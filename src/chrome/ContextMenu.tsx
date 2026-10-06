@@ -37,20 +37,20 @@ function MenuItem({ label, destructive, onClick }: { label: string; destructive?
 function InputRow({ label, defaultValue, onApply }: { label: string; defaultValue: number; onApply: (v: number) => void }) {
   const [value, setValue] = useState(defaultValue);
   return (
-    <div style={{ ...ITEM_STYLE, gap: 6 }}>
-      <span style={{ color: color.textDim, flex: 1 }}>{label}</span>
+    <div style={{ ...ITEM_STYLE, height: "auto", minHeight: 32, gap: 6, padding: "6px 10px" }}>
+      <span style={{ color: color.textDim, flex: 1, whiteSpace: "nowrap" }}>{label}</span>
       <input
         className="chrome-input"
-        style={{ width: 56, background: color.bgStage, border: `1px solid ${color.border}`, color: color.text, fontFamily: "Geist Mono, monospace", fontSize: 12 }}
+        style={{ width: 52, flexShrink: 0, background: color.bgStage, border: `1px solid ${color.border}`, color: color.text, fontFamily: "Geist Mono, monospace", fontSize: 12 }}
         type="number"
         value={value}
         onChange={(e) => setValue(Number(e.target.value))}
       />
       <button
-        style={{ background: "transparent", border: "none", color: color.primary, cursor: "pointer", fontFamily: "Inter, sans-serif", fontSize: 12 }}
+        style={{ flexShrink: 0, background: "transparent", border: "none", color: color.primary, cursor: "pointer", fontFamily: "Inter, sans-serif", fontSize: 12 }}
         onClick={() => onApply(value)}
       >
-        Apply
+        Set
       </button>
     </div>
   );
@@ -71,7 +71,7 @@ export function ContextMenu() {
     return (
       <>
         <div style={{ position: "fixed", inset: 0, zIndex: 999 }} onClick={close} onContextMenu={(e) => { e.preventDefault(); close(); }} />
-        <div style={{ ...panelSurface, position: "fixed", left: menu.x, top: menu.y, borderRadius: 10, padding: 4, width: 220, zIndex: 1000 }}>
+        <div style={{ ...panelSurface, position: "fixed", left: menu.x, top: menu.y, borderRadius: 10, padding: 4, width: 248, zIndex: 1000 }}>
           <MenuItem
             label={node.fault.killed ? "Revive" : "Kill"}
             destructive={!node.fault.killed}
@@ -84,7 +84,7 @@ export function ContextMenu() {
             }}
           />
           <InputRow
-            label="Add latency (ms)"
+            label="Latency (ms)"
             defaultValue={node.fault.extraLatencyMs}
             onApply={(v) => {
               update((d) => {
@@ -95,7 +95,7 @@ export function ContextMenu() {
             }}
           />
           <InputRow
-            label="Slow down (x)"
+            label="Slowdown (x)"
             defaultValue={node.fault.slowdownMultiplier}
             onApply={(v) => {
               update((d) => {
@@ -127,7 +127,7 @@ export function ContextMenu() {
     return (
       <>
         <div style={{ position: "fixed", inset: 0, zIndex: 999 }} onClick={close} onContextMenu={(e) => { e.preventDefault(); close(); }} />
-        <div style={{ ...panelSurface, position: "fixed", left: menu.x, top: menu.y, borderRadius: 10, padding: 4, width: 220, zIndex: 1000 }}>
+        <div style={{ ...panelSurface, position: "fixed", left: menu.x, top: menu.y, borderRadius: 10, padding: 4, width: 248, zIndex: 1000 }}>
           <MenuItem
             label={edge.partitioned ? "Heal" : "Partition"}
             destructive={!edge.partitioned}
@@ -140,7 +140,7 @@ export function ContextMenu() {
             }}
           />
           <InputRow
-            label="Add latency (ms)"
+            label="Latency (ms)"
             defaultValue={edge.latencyMs}
             onApply={(v) => {
               update((d) => {

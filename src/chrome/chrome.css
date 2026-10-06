@@ -51,6 +51,17 @@
   transition: border-color 140ms cubic-bezier(0, 0, 0.2, 1);
 }
 
+/* Native number-input spinner arrows eat horizontal space meant for the value text
+   (section 10.3/10.2 want plain numeric fields, not a spinner control). */
+.chrome-input[type="number"]::-webkit-inner-spin-button,
+.chrome-input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.chrome-input[type="number"] {
+  -moz-appearance: textfield;
+}
+
 /* Thumb/track colors mirror tokens.color (primary/text/bgRaised); CSS pseudo-elements can't
    be styled via inline style props, so they're hardcoded here instead of read from tokens.ts. */
 .chrome-slider {
