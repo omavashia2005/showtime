@@ -102,6 +102,20 @@ export class SceneRenderer {
     };
   }
 
+  /** Convert logical stage coordinates to viewport (client) pixel coordinates, relative to
+   * the canvas's own bounding rect (add canvasRect.left/top for absolute page coordinates). */
+  stageToViewport(stageX: number, stageY: number): { x: number; y: number } {
+    const scale = this.world.scale.x;
+    return {
+      x: stageX * scale + this.world.position.x,
+      y: stageY * scale + this.world.position.y,
+    };
+  }
+
+  get scale(): number {
+    return this.world.scale.x;
+  }
+
   get isEditMode(): boolean {
     return this.editMode;
   }
