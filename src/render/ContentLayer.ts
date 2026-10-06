@@ -62,6 +62,15 @@ export class ContentLayer {
   }
 
   private nodesById = new Map<string, SceneNode>();
+  private edgeGeomCache = new Map<string, ReturnType<typeof computeEdgeGeometry>>();
+
+  getEdgeGeom(edgeId: string): ReturnType<typeof computeEdgeGeometry> | undefined {
+    return this.edgeGeomCache.get(edgeId);
+  }
+
+  getEdgeLatencyMs(edgeId: string): number | undefined {
+    return this.latestDoc?.edges.find((e) => e.id === edgeId)?.latencyMs;
+  }
 
   private nodeBox(id: string): NodeBox | undefined {
     const n = this.nodesById.get(id);
@@ -269,6 +278,7 @@ export class ContentLayer {
       const targetBox = this.nodeBox(e.targetId);
       if (!view || !sourceBox || !targetBox) continue;
       const geom = computeEdgeGeometry(sourceBox, targetBox);
+      this.edgeGeomCache.set(e.id, geom);
       const lastActive = this.lastEdgeActiveAt.get(e.id) ?? -Infinity;
       view.update(
         {
