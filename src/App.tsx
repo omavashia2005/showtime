@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import "./index.css";
 import "./chrome/chrome.css";
 import { ContextMenu } from "./chrome/ContextMenu";
@@ -10,17 +10,19 @@ import { demoScene } from "./dev/seedDemoScene";
 import { InteractionController } from "./interactions/InteractionController";
 import { installHotkeys } from "./interactions/hotkeys";
 import { BurstLayer } from "./render/BurstLayer";
+import { ChartsOverlayView, type ChartSample } from "./render/ChartsOverlayView";
 import { ContentLayer } from "./render/ContentLayer";
+import { CursorAutoHide } from "./render/CursorAutoHide";
 import { ParticleLayer } from "./render/ParticleLayer";
 import { PixiStage } from "./render/PixiStage";
 import { rendererCell } from "./render/rendererCell";
-import type { SceneRenderer } from "./render/SceneRenderer";
+import { RippleLayer } from "./render/RippleLayer";
+import { TitleCardView } from "./render/TitleCardView";
 import { simClient as sim } from "./sim/simClientSingleton";
 import { useSceneStore } from "./store/sceneStore";
 import { useUiStore } from "./store/uiStore";
 
 export function App() {
-  const rendererRef = useRef<SceneRenderer | null>(null);
   const recording = useUiStore((s) => s.recording);
 
   useEffect(() => installHotkeys(), []);
@@ -29,7 +31,6 @@ export function App() {
     <>
       <PixiStage
         onReady={(renderer) => {
-          rendererRef.current = renderer;
           rendererCell.current = renderer;
 
           const content = new ContentLayer(
@@ -42,7 +43,16 @@ export function App() {
           const particles = new ParticleLayer(renderer.app);
           renderer.layers.particles.addChild(particles.particleContainer);
           const bursts = new BurstLayer(renderer.layers.bursts);
-          new InteractionController(renderer, content);
+          const ripples = new RippleLayer(renderer.layers.ripples);
+          new InteractionController(renderer, content, ripples);
+
+          const titleCard = new TitleCardView();
+          renderer.layers.titleCard.addChild(titleCard.container);
+          const charts = new ChartsOverlayView();
+          renderer.layers.charts.addChild(charts.container);
+          const cursorAutoHide = new CursorAutoHide(renderer.app.canvas as HTMLCanvasElement);
+          const chartSamples: ChartSample[] = [];
+          let lastSampleMs = 0;
 
           content.getMetrics = (id) => sim.getNodeMetrics(id);
 
@@ -92,6 +102,19 @@ export function App() {
             content.tick(ticker.deltaMS, nowMs);
             particles.tick(nowMs);
             bursts.tick(nowMs);
+            ripples.tick(nowMs);
+            cursorAutoHide.tick(nowMs, ui.recording);
+            renderer.setEditMode(!ui.recording);
+
+            titleCard.update(doc.title, doc.subtitle);
+            charts.container.visible = doc.showChartsOverlay;
+            if (doc.showChartsOverlay && nowMs - lastSampleMs > 250) {
+              lastSampleMs = nowMs;
+              const g = sim.getGlobalMetrics();
+              chartSamples.push({ tMs: nowMs, p50: g.p50, p99: g.p99, qps: g.throughput });
+              while (chartSamples.length > 0 && chartSamples[0]!.tMs < nowMs - 60_000) chartSamples.shift();
+              charts.update(chartSamples, nowMs);
+            }
           });
         }}
       />

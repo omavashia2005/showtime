@@ -6,6 +6,7 @@ import { useUiStore } from "../store/uiStore";
 import type { SceneDocument } from "../types/scene";
 import { IconButton } from "./IconButton";
 import { chromeValueStyle, inputStyle, panelSurface } from "./panelStyle";
+import { SceneSettings } from "./SceneSettings";
 import { Tooltip } from "./Tooltip";
 
 const SPEEDS: SceneDocument["speed"][] = [0.25, 0.5, 1, 2, 4];
@@ -72,6 +73,8 @@ export function ControlBar({ visible }: ControlBarProps) {
       <Tooltip label="Recording mode" hotkey="H" side="top">
         <IconButton icon={<Video size={18} strokeWidth={1.5} />} active={recording} onClick={toggleRecording} />
       </Tooltip>
+      <Divider />
+      <SceneSettings />
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { Graphics } from "pixi.js";
 import type { ContentLayer } from "../render/ContentLayer";
 import { distanceToBezier, type Pt } from "../render/edgeGeometry";
 import { hitTestEntities, rectsIntersect } from "../render/hitTest";
+import type { RippleLayer } from "../render/RippleLayer";
 import type { SceneRenderer } from "../render/SceneRenderer";
 import { color, hexToNumber, layout } from "../tokens";
 import { useSceneStore } from "../store/sceneStore";
@@ -34,6 +35,7 @@ export class InteractionController {
   constructor(
     private renderer: SceneRenderer,
     private content: ContentLayer,
+    private ripples: RippleLayer,
   ) {
     renderer.layers.overlay.addChild(this.overlay);
     const canvas = renderer.app.canvas as HTMLCanvasElement;
@@ -62,8 +64,9 @@ export class InteractionController {
   }
 
   private onPointerDown = (e: PointerEvent): void => {
-    if (e.button !== 0) return;
     const p = this.toStage(e.clientX, e.clientY);
+    this.ripples.trigger(p.x, p.y, performance.now());
+    if (e.button !== 0) return;
     const ui = useUiStore.getState();
     const doc = useSceneStore.getState().doc;
 
