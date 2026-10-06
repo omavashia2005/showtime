@@ -1,21 +1,28 @@
 import { useRef } from "react";
 import "./index.css";
+import "./chrome/chrome.css";
+import { ContextMenu } from "./chrome/ContextMenu";
+import { ControlBar } from "./chrome/ControlBar";
+import { Inspector } from "./chrome/Inspector";
+import { Palette } from "./chrome/Palette";
 import { demoScene } from "./dev/seedDemoScene";
 import { BurstLayer } from "./render/BurstLayer";
 import { ContentLayer } from "./render/ContentLayer";
 import { ParticleLayer } from "./render/ParticleLayer";
 import { PixiStage } from "./render/PixiStage";
 import type { SceneRenderer } from "./render/SceneRenderer";
-import { SimClient } from "./sim/client";
+import { simClient as sim } from "./sim/simClientSingleton";
 import { useSceneStore } from "./store/sceneStore";
 import { useUiStore } from "./store/uiStore";
 
 export function App() {
   const rendererRef = useRef<SceneRenderer | null>(null);
+  const recording = useUiStore((s) => s.recording);
 
   return (
-    <PixiStage
-      onReady={(renderer) => {
+    <>
+      <PixiStage
+        onReady={(renderer) => {
         rendererRef.current = renderer;
 
         const content = new ContentLayer(
@@ -29,7 +36,6 @@ export function App() {
         renderer.layers.particles.addChild(particles.particleContainer);
         const bursts = new BurstLayer(renderer.layers.bursts);
 
-        const sim = new SimClient();
         content.getMetrics = (id) => sim.getNodeMetrics(id);
 
         sim.onSpawns = (spawns) => {
@@ -79,7 +85,12 @@ export function App() {
           particles.tick(nowMs);
           bursts.tick(nowMs);
         });
-      }}
-    />
+        }}
+      />
+      <Palette visible={!recording} />
+      <ControlBar visible={!recording} />
+      <Inspector visible={!recording} />
+      {!recording && <ContextMenu />}
+    </>
   );
 }

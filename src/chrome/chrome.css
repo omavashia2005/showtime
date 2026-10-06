@@ -1,0 +1,80 @@
+.chrome-panel {
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  transition: opacity 140ms cubic-bezier(0, 0, 0.2, 1), transform 140ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.chrome-hidden-left {
+  opacity: 0;
+  transform: translateX(-8px);
+  pointer-events: none;
+}
+.chrome-hidden-right {
+  opacity: 0;
+  transform: translateX(8px);
+  pointer-events: none;
+}
+.chrome-hidden-bottom {
+  opacity: 0;
+  transform: translateY(8px);
+  pointer-events: none;
+}
+
+.icon-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background 140ms cubic-bezier(0, 0, 0.2, 1);
+  padding: 0;
+}
+
+.chrome-field-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 32px;
+}
+
+.chrome-input {
+  border-radius: 6px;
+  border-width: 1px;
+  border-style: solid;
+  height: 28px;
+  padding: 0 8px;
+  outline: none;
+  transition: border-color 140ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+/* Thumb/track colors mirror tokens.color (primary/text/bgRaised); CSS pseudo-elements can't
+   be styled via inline style props, so they're hardcoded here instead of read from tokens.ts. */
+.chrome-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 2px;
+  outline: none;
+  background: linear-gradient(to right, #5cc8ff 0%, #5cc8ff var(--pct), #152b29 var(--pct), #152b29 100%);
+}
+.chrome-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  cursor: pointer;
+  background: #e6f1fa;
+  border: 1.5px solid #5cc8ff;
+}
+.chrome-slider::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  cursor: pointer;
+  background: #e6f1fa;
+  border: 1.5px solid #5cc8ff;
+}
